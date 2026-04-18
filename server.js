@@ -4,20 +4,19 @@
  * Description: Proxy server to bypass mixed-content issues for Kilwa Video API
  */
 
-const express = require('express');
-const cors = require('cors');
+import express from 'express';
+import cors from 'cors';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Enable CORS for all origins so your HTTPS frontend can access it
+// Enable CORS for all origins
 app.use(cors());
 
-// Endpoint: /api/generate?text=YOUR_INPUT
+// Endpoint: /api/generate?text=
 app.get('/api/generate', async (req, res) => {
     const userInput = req.query.text;
 
-    // 1. Validation
     if (!userInput) {
         return res.status(400).json({
             error: "Missing 'text' query parameter.",
@@ -26,11 +25,10 @@ app.get('/api/generate', async (req, res) => {
     }
 
     try {
-        // 2. Properly encode the user input
         const encodedText = encodeURIComponent(userInput);
         const externalApiUrl = `http://de3.bot-hosting.net:21007/kilwa-video?text=${encodedText}`;
 
-        // 3. Fetch from the HTTP external API
+        // Deno and Node 18+ have global fetch
         const response = await fetch(externalApiUrl);
 
         if (!response.ok) {
@@ -39,7 +37,6 @@ app.get('/api/generate', async (req, res) => {
 
         const data = await response.json();
 
-        // 4. Return the data to the client
         res.json({
             success: true,
             data: data,
