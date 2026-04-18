@@ -1,7 +1,7 @@
 /**
  * Developed by Ramzan Ahsan
  * GitHub: https://github.com/Ramzan-Ahsan
- * Description: Proxy server to bypass mixed-content issues for Kilwa Video API
+ * Description: Clean Proxy API for Kilwa Video
  */
 
 import express from 'express';
@@ -13,12 +13,19 @@ const PORT = process.env.PORT || 3000;
 // Enable CORS for all origins
 app.use(cors());
 
-// Endpoint: /api/generate?text=
+// 1. Root Route - Welcome Message
+app.get('/', (req, res) => {
+    res.send('Kilwa Proxy API is Running! Developed by Ramzan Ahsan.');
+});
+
+// 2. Generation Route - Filtered Response
 app.get('/api/generate', async (req, res) => {
     const userInput = req.query.text;
 
+    // Validation
     if (!userInput) {
         return res.status(400).json({
+            success: false,
             error: "Missing 'text' query parameter.",
             developed_by: "Ramzan Ahsan"
         });
@@ -28,7 +35,6 @@ app.get('/api/generate', async (req, res) => {
         const encodedText = encodeURIComponent(userInput);
         const externalApiUrl = `http://de3.bot-hosting.net:21007/kilwa-video?text=${encodedText}`;
 
-        // Deno and Node 18+ have global fetch
         const response = await fetch(externalApiUrl);
 
         if (!response.ok) {
@@ -37,17 +43,18 @@ app.get('/api/generate', async (req, res) => {
 
         const data = await response.json();
 
+        // Send only the required fields
         res.json({
             success: true,
-            data: data,
+            video_url: data.video_url || null,
             developed_by: "Ramzan Ahsan"
         });
 
     } catch (error) {
         console.error("Proxy Error:", error.message);
         res.status(500).json({
-            error: "Failed to fetch data from the external video API.",
-            message: error.message,
+            success: false,
+            error: "Failed to fetch data from the external API.",
             developed_by: "Ramzan Ahsan"
         });
     }
